@@ -1,34 +1,29 @@
 import { ingestRepository } from "../src/ingestion/ingest.js";
-import { resolveConfig } from "../src/core/embedConfig.js";
+import { resolveConfigOrDie } from "../src/config/loader.js";
 
 async function main() {
   const repoPath = process.argv[2];
   if (!repoPath) {
-    console.error("Usage: tsx scripts/ingest-repo.ts <repo-path> [--provider ollama|lmstudio] [--model <name>] [--base-url <url>]");
+    console.error("Usage: tsx scripts/ingest-repo.ts <repo-path>");
+    console.error("Note: Prefer 'npx code-rag ingest --path <repo-path>' instead.");
     process.exit(1);
   }
 
-  const args = process.argv.slice(3);
-  const provider = getArg(args, "--provider") as "ollama" | "lmstudio" | undefined;
-  const modelName = getArg(args, "--model");
-  const baseUrl = getArg(args, "--base-url");
+  const config = resolveConfigOrDie();
 
   const result = await ingestRepository({
     repoPath,
     embedConfig: {
-      ...(provider ? { provider } : {}),
-      ...(modelName ? { modelName } : {}),
-      ...(baseUrl ? { baseUrl } : {}),
+      provider: config.embed.provider,
+      modelName: config.embed.modelName,
+      baseUrl: config.embed.baseUrl,
+      dimensions: config.embed.dimensions,
     },
+    qdrantUrl: config.qdrant.url,
+    collectionName: config.qdrant.collection,
   });
 
   console.log(JSON.stringify(result, null, 2));
-}
-
-function getArg(args: string[], flag: string): string | undefined {
-  const idx = args.indexOf(flag);
-  if (idx === -1 || idx + 1 >= args.length) return undefined;
-  return args[idx + 1];
 }
 
 main().catch((err) => {

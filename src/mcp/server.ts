@@ -4,13 +4,15 @@ import { z } from "zod";
 import { searchCodebase } from "../core/retriever.js";
 import { ingestRepository } from "../ingestion/ingest.js";
 import { resolveConfig } from "../core/embedConfig.js";
-import { ensureCollection, createClient } from "../core/qdrant.js";
+import type { Config } from "../config/schema.js";
 
-export function createServer(): McpServer {
+export function createServer(config: Config): McpServer {
   const server = new McpServer({
     name: "code-rag",
     version: "0.1.0",
   });
+
+  const embedConfig = resolveConfig(undefined, config);
 
   server.tool(
     "search_codebase",
@@ -24,7 +26,6 @@ export function createServer(): McpServer {
     },
     async (params) => {
       try {
-        const embedConfig = resolveConfig();
         const results = await searchCodebase({
           query: params.query,
           tags: params.tags,
@@ -81,10 +82,10 @@ export function createServer(): McpServer {
           };
         }
 
-        const embedConfig = resolveConfig();
         const result = await ingestRepository({
           repoPath: params.path,
           embedConfig,
+          qdrantUrl: config.qdrant.url,
         });
 
         return {
@@ -119,8 +120,12 @@ export function createServer(): McpServer {
   return server;
 }
 
-export async function startServer(): Promise<void> {
-  const server = createServer();
+export async function startServer(config?: Config): Promise<void> {
+  if (!config) {
+    const { resolveConfigOrDie } = await import("../config/loader.js");
+    config = resolveConfigOrDie();
+  }
+  const server = createServer(config);
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("RAG MCP Server running on stdio");

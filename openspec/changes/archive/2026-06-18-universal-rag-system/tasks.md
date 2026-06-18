@@ -62,5 +62,5 @@
 - [x] 7.3 Test full ingestion pipeline with LM Studio provider
 - [ ] 7.4 Test semantic search via MCP search_codebase tool
 - [x] 7.5 Verify Qdrant collection contains expected CodeUnits with correct payloads
-- [ ] 7.6 Verify tag and type filtering works in search results
-- [ ] 7.7 Verify dimension mismatch detection rejects wrong embedding models
+- [x] 7.6 Verify tag and type filtering works in search results
+- [x] 7.7 Verify dimension mismatch detection rejects wrong embedding models

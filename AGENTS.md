@@ -54,31 +54,41 @@ LLM (local inference)
 ```
 code-rag/
   src/
+    cli/
+      index.ts           # CLI entry point (commander)
+      commands/
+        init.ts          # npx code-rag init
+        ingest.ts        # npx code-rag ingest
+        start.ts         # npx code-rag start
+
+    config/
+      schema.ts          # Zod schema for .code-rag.jsonc
+      loader.ts          # config resolution, JSONC parsing, env var overrides
+      defaults.ts        # default config values
+
     mcp/
       server.ts          # MCP API for OpenCode
       routes.ts          # search + ingest endpoints
 
     ingestion/
       ingest.ts          # repository ingestion pipeline
-      watcher.ts         # git/file watcher (optional)
 
     chunking/
       tsChunker.ts       # AST-based TS chunking (NestJS/Vue)
 
     core/
-      embed.ts           # Ollama embeddings
-      qdrant.ts         # vector DB client
-      retriever.ts      # semantic search logic
+      embed.ts           # embedding client (Ollama / LM Studio)
+      embedConfig.ts     # embedding config resolution
+      qdrant.ts          # vector DB client
+      retriever.ts       # semantic search logic
 
     model/
-      codeUnit.ts       # unified schema
+      codeUnit.ts        # unified schema
 
-  config/
-    opencode.json
-    qdrant.json
+  .code-rag.jsonc        # project config file (created by code-rag init)
 
   scripts/
-    ingest-repo.ts
+    ingest-repo.ts       # legacy ingest script (prefer npx code-rag ingest)
 
   package.json
   tsconfig.json
@@ -178,6 +188,49 @@ Exposes:
     }
   ]
 }
+```
+
+---
+
+## 9b. CLI Usage
+
+Install as a dev dependency:
+
+```bash
+npm install --save-dev code-rag
+```
+
+### Configuration
+
+Create a config file in your project:
+
+```bash
+npx code-rag init          # creates .code-rag.jsonc with defaults
+npx code-rag init --force  # overwrite existing config
+```
+
+Config file `.code-rag.jsonc` is searched in CWD first, then `~/.code-rag.jsonc`.
+
+Environment variable overrides:
+- `CODE_RAG_EMBED_PROVIDER` — ollama or lmstudio
+- `CODE_RAG_EMBED_MODEL` — embedding model name
+- `CODE_RAG_EMBED_BASE_URL` — embedding API URL
+- `CODE_RAG_EMBED_DIMENSIONS` — vector dimensions
+- `CODE_RAG_QDRANT_URL` — Qdrant server URL
+- `CODE_RAG_COLLECTION` — Qdrant collection name
+
+### Ingest
+
+```bash
+npx code-rag ingest                     # uses repoPath from config
+npx code-rag ingest --path /some/repo   # override repo path
+npx code-rag ingest --provider ollama    # override embedding provider
+```
+
+### Start MCP Server
+
+```bash
+npx code-rag start
 ```
 
 ---

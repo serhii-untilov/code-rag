@@ -11,6 +11,7 @@ export interface SearchOptions {
   minScore?: number;
   embedConfig: EmbedConfig;
   qdrantUrl?: string;
+  collectionName?: string;
 }
 
 export interface SearchResult {
@@ -31,7 +32,8 @@ export async function searchCodebase(options: SearchOptions): Promise<SearchResu
   const clampedTopK = Math.min(Math.max(topK, 1), 20);
   const filter = buildQdrantFilter(tags, type);
 
-  const results = await client.search(COLLECTION_NAME, {
+  const collectionName = options.collectionName ?? COLLECTION_NAME;
+  const results = await client.search(collectionName, {
     vector: queryVector,
     filter,
     limit: clampedTopK,

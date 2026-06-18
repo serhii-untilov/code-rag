@@ -1,3 +1,6 @@
+import type { Config } from "../config/schema.js";
+import { DEFAULT_CONFIG, getProviderDefaults } from "../config/defaults.js";
+
 export type EmbedProvider = "ollama" | "lmstudio";
 
 export interface EmbedConfig {
@@ -21,7 +24,17 @@ const LMSTUDIO_DEFAULTS: Omit<EmbedConfig, "provider"> & { provider: "lmstudio" 
   dimensions: 768,
 };
 
-export function resolveConfig(partial?: Partial<EmbedConfig>): EmbedConfig {
+export function resolveConfig(partial?: Partial<EmbedConfig>, config?: Config): EmbedConfig {
+  if (config) {
+    const defaults = getProviderDefaults(config.embed.provider);
+    return {
+      provider: config.embed.provider,
+      modelName: config.embed.modelName ?? defaults.modelName,
+      baseUrl: config.embed.baseUrl ?? defaults.baseUrl,
+      dimensions: config.embed.dimensions ?? defaults.dimensions,
+    };
+  }
+
   const provider = partial?.provider ?? "lmstudio";
   const defaults = provider === "ollama" ? OLLAMA_DEFAULTS : LMSTUDIO_DEFAULTS;
 

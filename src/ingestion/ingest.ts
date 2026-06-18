@@ -1,19 +1,28 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { QdrantClient } from '@qdrant/js-client-rest';
-import { chunkFile, EXCLUDED_DIRS, SUPPORTED_EXTENSIONS } from '../chunking/tsChunker.js';
+import { chunkFile } from '../chunking/tsChunker.js';
 import { CodeUnit } from '../model/codeUnit.js';
-import { embed, embedBatch } from '../core/embed.js';
-import { EmbedConfig, resolveConfig } from '../core/embedConfig.js';
-import { createClient, ensureCollection, COLLECTION_NAME } from '../core/qdrant.js';
+import { embedBatch } from '../core/embed.js';
+import { EmbedConfig } from '../core/embedConfig.js';
+import { createClient, ensureCollection } from '../core/qdrant.js';
 import { v5 as uuidv5 } from 'uuid';
+import type { Config } from '../config/schema.js';
 
 const NAMESPACE = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+
+const DEFAULT_EXCLUDED_DIRS = new Set(["node_modules", ".git", "dist", "build", "coverage"]);
+const DEFAULT_SUPPORTED_EXTENSIONS: Record<string, string> = {
+  ".ts": "ts", ".tsx": "ts", ".js": "js", ".jsx": "js", ".py": "py",
+};
 
 export interface IngestOptions {
   repoPath: string;
   embedConfig?: Partial<EmbedConfig>;
   qdrantUrl?: string;
+  collectionName?: string;
+  excludedDirs?: Set<string>;
+  supportedExtensions?: Record<string, string>;
 }
 
 export interface IngestResult {
@@ -23,14 +32,29 @@ export interface IngestResult {
 }
 
 export async function ingestRepository(options: IngestOptions): Promise<IngestResult> {
-  const config = resolveConfig(options.embedConfig);
+  const config = options.embedConfig ?? {};
+  const provider = config.provider ?? "lmstudio";
+  const defaults = provider === "ollama"
+    ? { modelName: "nomic-embed-text", baseUrl: "http://localhost:11434", dimensions: 768 }
+    : { modelName: "text-embedding-nomic-embed-text-v1.5", baseUrl: "http://192.168.1.136:1234/v1", dimensions: 768 };
+
+  const embedConfigResolved: EmbedConfig = {
+    provider,
+    modelName: config.modelName ?? defaults.modelName,
+    baseUrl: config.baseUrl ?? defaults.baseUrl,
+    dimensions: config.dimensions ?? defaults.dimensions,
+  };
+
   const qdrantUrl = options.qdrantUrl ?? 'http://localhost:6333';
+  const collectionName = options.collectionName ?? 'code_rag';
+  const excludedDirs = options.excludedDirs ?? DEFAULT_EXCLUDED_DIRS;
+  const supportedExtensions = options.supportedExtensions ?? DEFAULT_SUPPORTED_EXTENSIONS;
   const repoPath = path.resolve(options.repoPath);
 
   const client = await createClient(qdrantUrl);
-  await ensureCollection(client, config.dimensions);
+  await ensureCollection(client, embedConfigResolved.dimensions, collectionName);
 
-  const files = scanRepository(repoPath);
+  const files = scanRepository(repoPath, excludedDirs, supportedExtensions);
   const failedFiles: Array<{ file: string; error: string }> = [];
   let totalCodeUnits = 0;
 
@@ -47,11 +71,10 @@ export async function ingestRepository(options: IngestOptions): Promise<IngestRe
 
       const embeddings = await embedBatch(
         units.map((u) => u.content),
-        config
+        embedConfigResolved
       );
 
       const points = units.map((unit, idx) => ({
-        // id: unit.id,
         id: uuidv5(`${unit.filePath}:${unit.symbol}:${unit.type}:${unit.content}`, NAMESPACE),
         vector: embeddings[idx],
         payload: {
@@ -66,16 +89,10 @@ export async function ingestRepository(options: IngestOptions): Promise<IngestRe
         }
       }));
 
-      // Debug !!!
-      // console.log('!!! Begin');
-      // points.forEach((o) => console.log(o.vector.length));
-      // console.log('!!! End');
-
-      await client.upsert(COLLECTION_NAME, { points });
+      await client.upsert(collectionName, { points });
       totalCodeUnits += units.length;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      // console.error(`Error processing ${filePath}: ${errorMsg}`);
       console.error(err);
       failedFiles.push({ file: filePath, error: errorMsg });
     }
@@ -93,19 +110,19 @@ export async function ingestRepository(options: IngestOptions): Promise<IngestRe
   return result;
 }
 
-function scanRepository(repoPath: string): string[] {
+function scanRepository(repoPath: string, excludedDirs: Set<string>, supportedExtensions: Record<string, string>): string[] {
   const files: string[] = [];
 
   function walk(dir: string) {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
-      if (EXCLUDED_DIRS.has(entry.name)) continue;
+      if (excludedDirs.has(entry.name)) continue;
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         walk(fullPath);
       } else if (entry.isFile()) {
         const ext = path.extname(entry.name);
-        if (ext in SUPPORTED_EXTENSIONS) {
+        if (ext in supportedExtensions) {
           files.push(fullPath);
         }
       }
@@ -114,4 +131,23 @@ function scanRepository(repoPath: string): string[] {
 
   walk(repoPath);
   return files;
+}
+
+export function ingestRepositoryFromConfig(config: Config): Promise<IngestResult> {
+  const excludedDirs = new Set(config.ingest.excludedDirs);
+  const supportedExtensions: Record<string, string> = {};
+  const extMap: Record<string, string> = {
+    ".ts": "ts", ".tsx": "ts", ".js": "js", ".jsx": "js", ".py": "py",
+  };
+  for (const ext of config.ingest.supportedExtensions) {
+    supportedExtensions[ext] = extMap[ext] ?? "unknown";
+  }
+
+  return ingestRepository({
+    repoPath: config.ingest.repoPath ?? process.cwd(),
+    qdrantUrl: config.qdrant.url,
+    collectionName: config.qdrant.collection,
+    excludedDirs,
+    supportedExtensions,
+  });
 }
