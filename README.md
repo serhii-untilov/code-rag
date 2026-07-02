@@ -13,13 +13,16 @@ Local-first, framework-agnostic Code RAG system for code intelligence. Indexes c
 ### As a dev dependency in your project (recommended)
 
 ```bash
-npm install --save-dev code-rag
+npm install --save-dev @untilov/code-rag
+npx code-rag init
+npx code-rag qdrant-up
+npx code-rag ingest
 ```
 
 ### From source
 
 ```bash
-git clone <repo-url> code-rag
+git clone git@github.com:serhii-untilov/code-rag.git code-rag
 cd code-rag
 npm install
 npm run build
