@@ -6,6 +6,7 @@ const OLLAMA_DEFAULTS = {
   modelName: "nomic-embed-text",
   baseUrl: "http://localhost:11434",
   dimensions: 768,
+  collection: "code-rag",
 };
 
 const LMSTUDIO_DEFAULTS = {
@@ -13,6 +14,7 @@ const LMSTUDIO_DEFAULTS = {
   modelName: "text-embedding-nomic-embed-text-v1.5",
   baseUrl: "http://192.168.1.136:1234/v1",
   dimensions: 768,
+  collection: "code-rag",
 };
 
 export function getProviderDefaults(provider: EmbedProvider) {

@@ -8,6 +8,7 @@ export interface EmbedConfig {
   modelName: string;
   baseUrl: string;
   dimensions: number;
+  collection: string;
 }
 
 const OLLAMA_DEFAULTS: Omit<EmbedConfig, "provider"> & { provider: "ollama" } = {
@@ -15,6 +16,7 @@ const OLLAMA_DEFAULTS: Omit<EmbedConfig, "provider"> & { provider: "ollama" } = 
   modelName: "nomic-embed-text",
   baseUrl: "http://localhost:11434",
   dimensions: 768,
+  collection: "code-rag",
 };
 
 const LMSTUDIO_DEFAULTS: Omit<EmbedConfig, "provider"> & { provider: "lmstudio" } = {
@@ -22,6 +24,7 @@ const LMSTUDIO_DEFAULTS: Omit<EmbedConfig, "provider"> & { provider: "lmstudio" 
   modelName: "text-embedding-nomic-embed-text-v1.5",
   baseUrl: "http://192.168.1.136:1234/v1",
   dimensions: 768,
+  collection: "code-rag",
 };
 
 export function resolveConfig(partial?: Partial<EmbedConfig>, config?: Config): EmbedConfig {
@@ -32,6 +35,7 @@ export function resolveConfig(partial?: Partial<EmbedConfig>, config?: Config): 
       modelName: config.embed.modelName ?? defaults.modelName,
       baseUrl: config.embed.baseUrl ?? defaults.baseUrl,
       dimensions: config.embed.dimensions ?? defaults.dimensions,
+      collection: config.qdrant.collection ?? defaults.collection,
     };
   }
 
@@ -43,5 +47,7 @@ export function resolveConfig(partial?: Partial<EmbedConfig>, config?: Config): 
     modelName: partial?.modelName ?? defaults.modelName,
     baseUrl: partial?.baseUrl ?? defaults.baseUrl,
     dimensions: partial?.dimensions ?? defaults.dimensions,
+    collection: partial?.collection ?? defaults.collection,
+
   };
 }

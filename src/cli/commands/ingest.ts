@@ -18,6 +18,7 @@ export function registerIngestCommand(program: any): void {
         modelName: config.embed.modelName,
         baseUrl: config.embed.baseUrl,
         dimensions: config.embed.dimensions,
+        collection: config.qdrant.collection,
       });
 
       try {

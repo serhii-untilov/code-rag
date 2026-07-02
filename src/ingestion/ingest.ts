@@ -43,6 +43,7 @@ export async function ingestRepository(options: IngestOptions): Promise<IngestRe
     modelName: config.modelName ?? defaults.modelName,
     baseUrl: config.baseUrl ?? defaults.baseUrl,
     dimensions: config.dimensions ?? defaults.dimensions,
+    collection: config.collection ?? "code-rag",
   };
 
   const qdrantUrl = options.qdrantUrl ?? 'http://localhost:6333';
