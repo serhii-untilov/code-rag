@@ -1,6 +1,6 @@
 {
   "name": "@untilov/code-rag",
-  "version": "0.1.0",
+  "version": "1.0.0-beta.1",
   "description": "Universal CodeUnit-based RAG system with MCP integration",
   "type": "module",
   "license": "MIT",
