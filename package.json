@@ -1,12 +1,16 @@
 {
-  "name": "code-rag",
+  "name": "@untilov/code-rag",
   "version": "0.1.0",
   "description": "Universal CodeUnit-based RAG system with MCP integration",
   "type": "module",
+  "license": "MIT",
   "main": "dist/index.js",
   "bin": {
     "code-rag": "dist/cli/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "init": "npx code-rag init",
