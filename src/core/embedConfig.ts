@@ -1,5 +1,5 @@
 import type { Config } from "../config/schema.js";
-import { DEFAULT_CONFIG, getProviderDefaults } from "../config/defaults.js";
+import { getProviderDefaults } from "../config/defaults.js";
 
 export type EmbedProvider = "ollama" | "lmstudio";
 
@@ -10,22 +10,6 @@ export interface EmbedConfig {
   dimensions: number;
   collection: string;
 }
-
-const OLLAMA_DEFAULTS: Omit<EmbedConfig, "provider"> & { provider: "ollama" } = {
-  provider: "ollama",
-  modelName: "nomic-embed-text",
-  baseUrl: "http://localhost:11434",
-  dimensions: 768,
-  collection: "code-rag",
-};
-
-const LMSTUDIO_DEFAULTS: Omit<EmbedConfig, "provider"> & { provider: "lmstudio" } = {
-  provider: "lmstudio",
-  modelName: "text-embedding-nomic-embed-text-v1.5",
-  baseUrl: "http://192.168.1.136:1234/v1",
-  dimensions: 768,
-  collection: "code-rag",
-};
 
 export function resolveConfig(partial?: Partial<EmbedConfig>, config?: Config): EmbedConfig {
   if (config) {
@@ -40,7 +24,7 @@ export function resolveConfig(partial?: Partial<EmbedConfig>, config?: Config): 
   }
 
   const provider = partial?.provider ?? "lmstudio";
-  const defaults = provider === "ollama" ? OLLAMA_DEFAULTS : LMSTUDIO_DEFAULTS;
+  const defaults = getProviderDefaults(provider);
 
   return {
     provider,
@@ -48,6 +32,5 @@ export function resolveConfig(partial?: Partial<EmbedConfig>, config?: Config): 
     baseUrl: partial?.baseUrl ?? defaults.baseUrl,
     dimensions: partial?.dimensions ?? defaults.dimensions,
     collection: partial?.collection ?? defaults.collection,
-
   };
 }

@@ -1,6 +1,6 @@
 {
   "name": "@untilov/code-rag",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.8",
   "description": "Universal CodeUnit-based RAG system with MCP integration",
   "type": "module",
   "license": "MIT",
@@ -26,7 +26,8 @@
   "files": [
     "dist",
     "README.md",
-    "docker-compose.yml"
+    "docker-compose.yml",
+    "package.json"
   ],
   "scripts": {
     "build": "tsc",
@@ -34,7 +35,9 @@
     "qdrant-up": "docker compose up -d",
     "start": "node dist/index.js",
     "ingest": "tsx scripts/ingest-repo.ts",
-    "mcp": "node dist/index.js"
+    "mcp": "node dist/index.js",
+    "rag:ingest": "npx code-rag ingest",
+    "rag:start": "npx code-rag start"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",

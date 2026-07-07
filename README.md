@@ -49,7 +49,7 @@ This creates `.code-rag.jsonc` in your project directory with default settings:
   "embed": {
     "provider": "lmstudio",             // "ollama" or "lmstudio"
     "modelName": "text-embedding-nomic-embed-text-v1.5",
-    "baseUrl": "http://192.168.1.136:1234/v1",
+    "baseUrl": "http://localhost:1234/v1",
     "dimensions": 768
   },
   "qdrant": {
@@ -134,7 +134,7 @@ Environment variables take precedence over the config file:
 
 **LM Studio** (default settings):
 - Model: `text-embedding-nomic-embed-text-v1.5`
-- URL: `http://192.168.1.136:1234/v1`
+- URL: `http://localhost:1234/v1`
 - Dimensions: 768
 
 ## Development

@@ -8,7 +8,7 @@ REPO_PATH    := /home/untilov/Projects/payroll-smb/
 # Faster than ollama
 PROVIDER     := lmstudio
 MODEL        := text-embedding-nomic-embed-text-v1.5
-BASE_URL     := http://192.168.1.136:1234/v1
+BASE_URL     := http://localhost:1234/v1
 
 .PHONY: install build start ingest mcp init qdrant-up qdrant-down qdrant-logs clean help
 

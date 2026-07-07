@@ -12,7 +12,7 @@ const OLLAMA_DEFAULTS = {
 const LMSTUDIO_DEFAULTS = {
   provider: "lmstudio" as EmbedProvider,
   modelName: "text-embedding-nomic-embed-text-v1.5",
-  baseUrl: "http://192.168.1.136:1234/v1",
+  baseUrl: "http://localhost:1234/v1",
   dimensions: 768,
   collection: "code-rag",
 };
@@ -24,9 +24,6 @@ export function getProviderDefaults(provider: EmbedProvider) {
 export const DEFAULT_CONFIG: Config = {
   embed: {
     provider: "lmstudio",
-    modelName: LMSTUDIO_DEFAULTS.modelName,
-    baseUrl: LMSTUDIO_DEFAULTS.baseUrl,
-    dimensions: LMSTUDIO_DEFAULTS.dimensions,
   },
   qdrant: {
     url: "http://localhost:6333",

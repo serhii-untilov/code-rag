@@ -1,5 +1,6 @@
 import { resolveConfigOrDie } from "../../config/index.js";
 import { startServer } from "../../mcp/server.js";
+import { ensureQdrantRunning } from "../qdrantAutostart.js";
 
 export function registerStartCommand(program: any): void {
   program
@@ -7,6 +8,7 @@ export function registerStartCommand(program: any): void {
     .description("Start the MCP RAG server")
     .action(async () => {
       const config = resolveConfigOrDie();
+      await ensureQdrantRunning(config.qdrant.url);
       await startServer(config);
     });
 }
